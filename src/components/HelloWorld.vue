@@ -1,57 +1,79 @@
 <template>
-  <div class="hello">
-    <h1>{{ msg }}</h1>
-    <p>
-      For a guide and recipes on how to configure / customize this project,<br>
-      check out the
-      <a href="https://cli.vuejs.org" target="_blank" rel="noopener">vue-cli documentation</a>.
-    </p>
-    <h3>Installed CLI Plugins</h3>
-    <ul>
-      <li><a href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-typescript" target="_blank" rel="noopener">typescript</a></li>
-    </ul>
-    <h3>Essential Links</h3>
-    <ul>
-      <li><a href="https://vuejs.org" target="_blank" rel="noopener">Core Docs</a></li>
-      <li><a href="https://forum.vuejs.org" target="_blank" rel="noopener">Forum</a></li>
-      <li><a href="https://chat.vuejs.org" target="_blank" rel="noopener">Community Chat</a></li>
-      <li><a href="https://twitter.com/vuejs" target="_blank" rel="noopener">Twitter</a></li>
-      <li><a href="https://news.vuejs.org" target="_blank" rel="noopener">News</a></li>
-    </ul>
-    <h3>Ecosystem</h3>
-    <ul>
-      <li><a href="https://router.vuejs.org" target="_blank" rel="noopener">vue-router</a></li>
-      <li><a href="https://vuex.vuejs.org" target="_blank" rel="noopener">vuex</a></li>
-      <li><a href="https://github.com/vuejs/vue-devtools#vue-devtools" target="_blank" rel="noopener">vue-devtools</a></li>
-      <li><a href="https://vue-loader.vuejs.org" target="_blank" rel="noopener">vue-loader</a></li>
-      <li><a href="https://github.com/vuejs/awesome-vue" target="_blank" rel="noopener">awesome-vue</a></li>
-    </ul>
-  </div>
+  <v-container>
+   
+  </v-container>
 </template>
 
 <script lang="ts">
-import { Component, Prop, Vue } from 'vue-property-decorator';
+import Vue from 'vue'
+import axios from 'axios';
+  
 
-@Component
-export default class HelloWorld extends Vue {
-  @Prop() private msg!: string;
+export default {
+  name: 'HelloWorld',
+  props: {
+    msg: String
+  },
+  data(){
+    return{
+    airlineData:[] as string[],
+    passData:[] as string[],
+    airlineName:[] as string[],
+    reqObj : {
+      name:'John Doe',
+      trips:250,
+      airline: 5  
+    }
+  }
+  },
+  methods:{
+    async addPassenger(){
+      //console.log(this.pname);
+      await axios.post('https://api.instantwebtools.net/v1/passenger',this.reqObj).then((response: { data: any; })=>{
+        console.log(response.data)
+      }).catch((error: any)=>console.log(error));
+      
+    },
+  async getData(){
+   await axios.get(
+    `https://api.instantwebtools.net/v1/passenger?page=3862&size=10`
+  ).then((response: { data: { data: never[]; }; })=>this.airlineData=response.data.data)
+  .catch((error: any)=>console.log(error))
+  console.log(this.airlineData);
+
+
+  },
+  async deletePassenger(id: string){
+    await axios.delete('https://api.instantwebtools.net/v1/passenger/'+id).then(() => {
+         this.getData();
+         alert("successfully deleted the passenger record");  
+      });
+  },
+  async updatePassenger(id: string){
+   
+    var airlinename:string='';
+    var passid:string='';
+
+    await axios.get(
+    `https://api.instantwebtools.net/v1/passenger/`+id
+  ).then((response: { data: never[]; })=>this.passData=response.data)
+  .catch((error: any)=>console.log(error))
+  console.log(this.passData);
+
+    this.reqObj.name=this.passData.name;
+    this.reqObj.trips=this.passData.trips;
+    passid=this.passData._id;
+
+    
+
+    await axios.post('https://api.instantwebtools.net/v1/passenger/'+passid,this.reqObj).then((response: { data: string; })=>{
+        console.log("Passenger data updated successfully"+response.data)
+      }).catch((error: any)=>console.log(error));
+  }
+  },
+
+ mounted(){
+  this.getData();
+  }  
 }
 </script>
-
-<!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped>
-h3 {
-  margin: 40px 0 0;
-}
-ul {
-  list-style-type: none;
-  padding: 0;
-}
-li {
-  display: inline-block;
-  margin: 0 10px;
-}
-a {
-  color: #42b983;
-}
-</style>
